@@ -37,19 +37,19 @@ scatter!(xs, ys, marker_z=zs)
 display(plot(ps, pc))
 
 
-for sample_iter in 1:(n-initial_n-4)
+anim = @animate for sample_iter in 1:(n-initial_n-4)
     curr_sampled_n = length(xys)
     print(curr_sampled_n)
-    if curr_sampled_n % 20 == 0
-        tempzs = Rosenbrock2d.(xys);
-        tempxs = [xy[1] for xy in xys]
-        tempys = [xy[2] for xy in xys]
-        tempps = surface(x, y, (x, y) -> poly_surrogate([x y]), title="$curr_sampled_n Points Polynomial expansion")
-        scatter!(tempxs, tempys, tempzs, marker_z=tempzs)
-        temppc = contour(x, y, (x, y) -> poly_surrogate([x y]), title="$curr_sampled_n Points Polynomial expansion")
-        scatter!(tempxs, tempys, marker_z=tempzs)
-        display(plot(tempps, temppc, size = (1000, 800)))
-    end
+    # if curr_sampled_n % 20 == 0
+    #     tempzs = Rosenbrock2d.(xys);
+    #     tempxs = [xy[1] for xy in xys]
+    #     tempys = [xy[2] for xy in xys]
+    #     tempps = surface(x, y, (x, y) -> poly_surrogate([x y]), title="$curr_sampled_n Points Polynomial expansion")
+    #     scatter!(tempxs, tempys, tempzs, marker_z=tempzs)
+    #     temppc = contour(x, y, (x, y) -> poly_surrogate([x y]), title="$curr_sampled_n Points Polynomial expansion")
+    #     scatter!(tempxs, tempys, marker_z=tempzs)
+    #     display(plot(tempps, temppc, size = (1000, 800)))
+    # end
     tempxys = copy(xys)
     tempzs = Rosenbrock2d.(tempxys)
 
@@ -96,9 +96,21 @@ for sample_iter in 1:(n-initial_n-4)
     print("  ")
 
     push!(xys, new_sample_point)
+
+
+    tempzs = Rosenbrock2d.(xys);
+    poly_surrogate = PolynomialChaosSurrogate(xys, tempzs, lb, ub)
+    tempxs = [xy[1] for xy in xys]
+    tempys = [xy[2] for xy in xys]
+    tempps = surface(x, y, (x, y) -> poly_surrogate([x y]), title="$curr_sampled_n Points Polynomial expansion")
+    scatter!(tempxs, tempys, tempzs, marker_z=tempzs)
+    temppc = contour(x, y, (x, y) -> poly_surrogate([x y]), title="$curr_sampled_n Points Polynomial expansion")
+    scatter!(tempxs, tempys, marker_z=tempzs)
+    plot(tempps, temppc, size = (1000, 800))
 end
 
-
+# Create an animation of the sampling process
+gif(anim, "2d cv sampling.gif", fps = 2)
 
 
 zs = Rosenbrock2d.(xys);

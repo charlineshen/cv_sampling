@@ -24,7 +24,7 @@ num_round = 2
 # x = AbstractFloat[i*2 for i in 0:5]
 x = AbstractFloat[-0.5, 0, 0.5, 1.5, 2, 2.5]    # Set initial sampling points
 
-for sample_iter in 1:n_samples-length(x)
+anim = @animate for sample_iter in 1:n_samples-length(x)
     tempx = copy(x)     # Make a copy of current sampled points
     # tempy = salustowicz.(tempx)
     tempy = gramacylee.(tempx)      # Calculate the true values of sampled points
@@ -73,7 +73,18 @@ for sample_iter in 1:n_samples-length(x)
     print("  ")
 
     push!(x, new_sample_point)      # Add the new sampled point into the sampling points list
+
+
+    # Graph surrogate plot with new point
+    y = gramacylee.(x)
+    radial_surrogate = RadialBasis(x, y, lower_bound, upper_bound)
+    scatter(x, y, label="Sampled points", xlims=(lower_bound, upper_bound), legend=:top)
+    plot!(radial_surrogate, label="Surrogate function",  xlims=(lower_bound, upper_bound), legend=:top, size=(800, 600))
+
 end
+
+# Create an animation of the sampling process
+gif(anim, "1d cv sampling.gif", fps = 2)
 
 
 # y = salustowicz.(x)

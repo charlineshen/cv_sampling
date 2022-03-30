@@ -23,7 +23,7 @@ function f(x)
 end
 
 
-n = 140
+n = 139
 initial_n = 138
 d = 8
 lb = [0.05,100,63070,990,63.1,700,1120,9855]
@@ -86,7 +86,7 @@ for sample_iter in 1:(n-initial_n)
     push!(x, new_sample_point)
 end
 
-
+y = f.(x)
 
 n_test = 1000
 x_test = sample(n_test,lb,ub,GoldenSample());
@@ -94,7 +94,7 @@ y_true = f.(x_test);
 
 my_rad = RadialBasis(x,y,lb,ub)
 y_rad = my_rad.(x_test)
-my_poly = PolynomialChaosSurrogate(x,y,lb,ub)
+my_poli = PolynomialChaosSurrogate(x,y,lb,ub)
 y_poli = my_poli.(x_test)
 mse_rad = norm(y_true - y_rad,2)/n_test
 mse_poli = norm(y_true - y_poli,2)/n_test
