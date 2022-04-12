@@ -2,6 +2,7 @@
 # import Pkg; Pkg.add("Surrogates")
 # import Pkg; Pkg.add("PolyChaos")
 # import Pkg; Pkg.add("Plots")
+# import Pkg; Pkg.add("LinearAlgebra")
 using Surrogates
 using PolyChaos
 using Plots
@@ -28,6 +29,7 @@ push!(xys, (8.0, 0.0))
 push!(xys, (8.0, 8.0))
 zs = Rosenbrock2d.(xys);
 
+# poly_surrogate = PolynomialChaosSurrogate(xys, zs, lb, ub)
 xs = [xy[1] for xy in xys]
 ys = [xy[2] for xy in xys]
 ps = surface(x, y, (x, y) -> poly_surrogate([x y]), title="Initial Polynomial expansion")

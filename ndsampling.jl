@@ -23,7 +23,7 @@ function f(x)
 end
 
 
-n = 139
+n = 250
 initial_n = 138
 d = 8
 lb = [0.05,100,63070,990,63.1,700,1120,9855]
@@ -81,7 +81,7 @@ for sample_iter in 1:(n-initial_n)
     end
 
     print(new_sample_point)
-    print("  ")
+    print("\n")
 
     push!(x, new_sample_point)
 end
@@ -100,12 +100,13 @@ my_poli = PolynomialChaosSurrogate(x,y,lb,ub)
 y_poli = my_poli.(x_test)
 mse_rad = norm(y_true - y_rad,2)/n_test
 mse_poli = norm(y_true - y_poli,2)/n_test
-print("MSE RadialBasis: $mse_rad")
-print("MSE PolynomialChaos: $mse_poli")
+print("MSE RadialBasis: $mse_rad    ")
+print("MSE PolynomialChaos: $mse_poli    ")
 
 # Find the MSE of 1000 tested points evaluated on PolynomialChaos Surrogate created by some random sampling methods
 random_n = n    # Generate same number of sampling points
 random_x = sample(random_n,lb,ub,GoldenSample());
+random_y_true = f.(random_x)
 other_poli = PolynomialChaosSurrogate(random_x,random_y_true,lb,ub)
 other_y_poli = other_poli.(x_test)
 mse_other_poli = norm(y_true - other_y_poli, 2)/random_n
