@@ -86,8 +86,10 @@ for sample_iter in 1:(n-initial_n)
     push!(x, new_sample_point)
 end
 
-y = f.(x)
+y = f.(x)   # Get true values of sampled points
 
+# Evalate the sampling results
+# Find the MSE of 1000 tested points evaluated on RadialBasis and PolynomialChaos Surrogates created using our cv sampling points
 n_test = 1000
 x_test = sample(n_test,lb,ub,GoldenSample());
 y_true = f.(x_test);
@@ -98,7 +100,13 @@ my_poli = PolynomialChaosSurrogate(x,y,lb,ub)
 y_poli = my_poli.(x_test)
 mse_rad = norm(y_true - y_rad,2)/n_test
 mse_poli = norm(y_true - y_poli,2)/n_test
-print("MSE Radial: $mse_rad")
-print("MSE Radial: $mse_poli")
+print("MSE RadialBasis: $mse_rad")
+print("MSE PolynomialChaos: $mse_poli")
 
-
+# Find the MSE of 1000 tested points evaluated on PolynomialChaos Surrogate created by some random sampling methods
+random_n = n    # Generate same number of sampling points
+random_x = sample(random_n,lb,ub,GoldenSample());
+other_poli = PolynomialChaosSurrogate(random_x,random_y_true,lb,ub)
+other_y_poli = other_poli.(x_test)
+mse_other_poli = norm(y_true - other_y_poli, 2)/random_n
+print("MSE PolynomialChaos on random samples: $mse_other_poli")
