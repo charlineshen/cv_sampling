@@ -23,40 +23,44 @@ function f(x)
 end
 
 
-n = 250
-initial_n = 138
-d = 8
+n = 250     # number of total sampling points
+initial_n = 138     # number of initial sampling points
+d = 8   # dimension
 lb = [0.05,100,63070,990,63.1,700,1120,9855]
 ub = [0.15,50000,115600,1110,116,820,1680,12045]
-x = sample(initial_n,lb,ub,SobolSample())
+x = sample(initial_n,lb,ub,SobolSample())   # sample the initial points using sobolsample
 y = f.(x)
 
 
 
-
+# each iteration of sampling a new point
 for sample_iter in 1:(n-initial_n)
+    # Record the nth sampled point
     curr_sampled_n = length(x)
     print(curr_sampled_n)
 
+    # Make copies of current sampled points
     tempx = copy(x)
     tempy = f.(tempx)
 
+    # Function that returns cv error of a point
     function cv_error(new_sample_point_x)
         norm = 0
-        poly_surrogate = PolynomialChaosSurrogate(tempx, tempy, lb, ub)
+        poly_surrogate = PolynomialChaosSurrogate(tempx, tempy, lb, ub) # Get PolynomialChaosSurrogate of current sampled points
     
+        # for each sampled point, we find the leave-one-out surrogate function
         for sampled_point in tempx
             loo_x = copy(tempx)
             loo_y = copy(tempy)
             deleteat!(loo_x, findall(x->x==sampled_point,loo_x))
             deleteat!(loo_y, findall(x->x==f(sampled_point),loo_y))
-            loo_poly_surrogate = PolynomialChaosSurrogate(loo_x, loo_y, lb, ub)
-            norm = norm + (loo_poly_surrogate(new_sample_point_x) - poly_surrogate(new_sample_point_x))^2
+            loo_poly_surrogate = PolynomialChaosSurrogate(loo_x, loo_y, lb, ub) # find the surrogate function that leaves one sampled point out
+            norm = norm + (loo_poly_surrogate(new_sample_point_x) - poly_surrogate(new_sample_point_x))^2   # Add up the norm to calculate cv error
         end
-        e = (norm / length(tempx))^(1/2)
+        e = (norm / length(tempx))^(1/2)    # Return the cv error by mean squaring the norm
     end
 
-
+    # Function that returns the minimum distance between the input point and one of the already sampled points
     function min_distance(new_sample_point_x)
         arr_x = [collect(i) for i in tempx]
         sample_point_x_arr = fill(new_sample_point_x, length(tempx))
@@ -66,16 +70,16 @@ for sample_iter in 1:(n-initial_n)
     end
 
     new_sample_point = (0.05,100,63070,990,63.1,700,1120,9855)
-    max_opt = 0
+    max_opt = 0 # number to maximize (cv_error * minimum_distance)
     for target_sample_x in sample(n,lb,ub,UniformSample())
         if target_sample_x in tempx
-            continue
+            continue    # skip the points already sampled
         else
             arr_target_sample_x = [i for i in target_sample_x]
-            opt = cv_error(arr_target_sample_x) * min_distance(arr_target_sample_x)
+            opt = cv_error(arr_target_sample_x) * min_distance(arr_target_sample_x) # Calculate the output of optimization function for the point
             if opt > max_opt
                 max_opt = opt
-                new_sample_point = target_sample_x
+                new_sample_point = target_sample_x  # Update the new sampling point as the point with biggest max_opt
             end
         end
     end
@@ -83,10 +87,11 @@ for sample_iter in 1:(n-initial_n)
     print(new_sample_point)
     print("\n")
 
-    push!(x, new_sample_point)
+    push!(x, new_sample_point)  # Add the new sampled point into the sampling points list
 end
 
 y = f.(x)   # Get true values of sampled points
+
 
 # Evalate the sampling results
 # Find the MSE of 1000 tested points evaluated on RadialBasis and PolynomialChaos Surrogates created using our cv sampling points
@@ -104,7 +109,7 @@ print("MSE RadialBasis: $mse_rad    ")
 print("MSE PolynomialChaos: $mse_poli    ")
 
 # Find the MSE of 1000 tested points evaluated on PolynomialChaos Surrogate created by some random sampling methods
-random_n = n    # Generate same number of sampling points
+random_n = n    # Generate same total number of sampling points
 random_x = sample(random_n,lb,ub,GoldenSample());
 random_y_true = f.(random_x)
 other_poli = PolynomialChaosSurrogate(random_x,random_y_true,lb,ub)
