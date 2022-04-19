@@ -23,9 +23,9 @@ function f(x)
 end
 
 
-n = 250     # number of total sampling points
+n = 148     # number of total sampling points
 initial_n = 138     # number of initial sampling points
-node_n = 200        # number of target points to evaluate in one sampling iteration
+node_n = 500        # number of target points to evaluate in one sampling iteration
 d = 8   # dimension
 lb = [0.05,100,63070,990,63.1,700,1120,9855]
 ub = [0.15,50000,115600,1110,116,820,1680,12045]
@@ -108,7 +108,7 @@ for sample_iter in 1:(n-initial_n)
 
     new_sample_point = (0.05,100,63070,990,63.1,700,1120,9855)
     max_opt = 0 # number to maximize (cv_error * minimum_distance)
-    for target_sample_x in sample(curr_sampled_n,lb,ub,SobolSample())
+    for target_sample_x in sample(node_n,lb,ub,SobolSample())
         if target_sample_x in tempx
             continue    # skip the points already sampled
         else
@@ -155,4 +155,4 @@ plot(sample_iters, cv_mses, title="PolynomialChaos MSE vs number of total sampli
 plot!(sample_iters, other_mses, label="sobol mse_poli")
 xlabel!("number of total sampling points")
 ylabel!("PolynomialChaos MSE")
-savefig("ndsampling_waterflow_MSE_250n.png")
+savefig("ndsampling_waterflow_MSE_148n_500.png")

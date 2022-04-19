@@ -23,8 +23,9 @@ function f(x)
 end
 
 
-n = 180     # number of total sampling points
+n = 500     # number of total sampling points
 initial_n = 138     # number of initial sampling points
+node_n = 200        # number of target points to evaluate in one sampling iteration
 d = 8   # dimension
 lb = [0.05,100,63070,990,63.1,700,1120,9855]
 ub = [0.15,50000,115600,1110,116,820,1680,12045]
@@ -32,10 +33,11 @@ x = sample(initial_n,lb,ub,SobolSample())   # sample the initial points using so
 y = f.(x)
 
 sample_iters = initial_n:n
-mses = []
+cv_mses = []
+other_mses = []
 
 # A function that returns the MSE of 1000 tested points evaluated on PolynomialChaos Surrogates created using input cv sampling points
-function calculateMSE(sampled_x)
+function calculateCVMSE(sampled_x)
     n_test = 1000
     x_test = sample(n_test,lb,ub,GoldenSample());
     y_true = f.(x_test);
@@ -46,6 +48,20 @@ function calculateMSE(sampled_x)
     mse_poli = norm(y_true - y_poli,2)/n_test
 end
 
+# A function that returns the MSE of 1000 tested points evaluated on PolynomialChaos Surrogates created using input random sampling points
+# Input is the number of random sampling points
+# We choose the method of random sampling the same as the initial sampling method.
+function calculateSobolMSE(sample_n)
+    n_test = 1000
+    x_test = sample(n_test,lb,ub,GoldenSample());
+    y_true = f.(x_test);
+
+    random_x = sample(sample_n,lb,ub,SobolSample());    # with same random sampling sequence as the initial samples
+    random_y_true = f.(random_x)
+    other_poli = PolynomialChaosSurrogate(random_x,random_y_true,lb,ub)
+    other_y_poli = other_poli.(x_test)
+    mse_other_poli = norm(y_true - other_y_poli, 2)/n_test
+end
 
 
 # each iteration of sampling a new point
@@ -55,9 +71,10 @@ for sample_iter in 1:(n-initial_n)
     print(curr_sampled_n)
 
     # Calculate MSE with current number of sampled points and add it to list
-    current_mse = calculateMSE(x)
-    push!(mses, current_mse)
-    print("     MSE PolynomialChaos: $current_mse")
+    current_cv_mse = calculateCVMSE(x)
+    push!(cv_mses, current_cv_mse)
+    push!(other_mses, calculateSobolMSE(curr_sampled_n))    # Add the MSE of random sampling n points to the list
+    print("     MSE PolynomialChaos: $current_cv_mse")
 
     # Make copies of current sampled points
     tempx = copy(x)
@@ -91,7 +108,7 @@ for sample_iter in 1:(n-initial_n)
 
     new_sample_point = (0.05,100,63070,990,63.1,700,1120,9855)
     max_opt = 0 # number to maximize (cv_error * minimum_distance)
-    for target_sample_x in sample(n,lb,ub,SobolSample())
+    for target_sample_x in sample(curr_sampled_n,lb,ub,SobolSample())
         if target_sample_x in tempx
             continue    # skip the points already sampled
         else
@@ -129,20 +146,13 @@ mse_poli = norm(y_true - y_poli,2)/n_test
 print("MSE RadialBasis: $mse_rad    ")
 print("MSE PolynomialChaos: $mse_poli    ")
 
-push!(mses, mse_poli)   # Push the final mse with all the sampled points to the mse list
-
-# Find the MSE of 1000 tested points evaluated on PolynomialChaos Surrogate created by some random sampling methods
-random_n = n    # Generate same total number of sampling points
-random_x = sample(random_n,lb,ub,SobolSample());    # with same random sampling sequence as the initial samples
-random_y_true = f.(random_x)
-other_poli = PolynomialChaosSurrogate(random_x,random_y_true,lb,ub)
-other_y_poli = other_poli.(x_test)
-mse_other_poli = norm(y_true - other_y_poli, 2)/random_n
-print("MSE PolynomialChaos on random samples: $mse_other_poli")
+push!(cv_mses, mse_poli)   # Push the final cv mse with all the sampled points to the cv mse list
+push!(other_mses, calculateSobolMSE(n))     # Push the mse of sampling all the points randomly to the list
 
 
 # Make a plot of how MSE changes during sampling
-plot(sample_iters, mses, title="PolynomialChaos MSE vs number of total sampling points", label="mse_poli")
+plot(sample_iters, cv_mses, title="PolynomialChaos MSE vs number of total sampling points", label="cv mse_poli")
+plot!(sample_iters, other_mses, label="sobol mse_poli")
 xlabel!("number of total sampling points")
 ylabel!("PolynomialChaos MSE")
-savefig("ndsampling_waterflow_MSE.png")
+savefig("ndsampling_waterflow_MSE_500n.png")
