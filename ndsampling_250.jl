@@ -31,6 +31,21 @@ ub = [0.15,50000,115600,1110,116,820,1680,12045]
 x = sample(initial_n,lb,ub,SobolSample())   # sample the initial points using sobolsample
 y = f.(x)
 
+sample_iters = initial_n:n
+mses = []
+
+# A function that returns the MSE of 1000 tested points evaluated on PolynomialChaos Surrogates created using input cv sampling points
+function calculateMSE(sampled_x)
+    n_test = 1000
+    x_test = sample(n_test,lb,ub,GoldenSample());
+    y_true = f.(x_test);
+
+    sampled_y = f.(sampled_x)
+    my_poli = PolynomialChaosSurrogate(sampled_x,sampled_y,lb,ub)
+    y_poli = my_poli.(x_test)
+    mse_poli = norm(y_true - y_poli,2)/n_test
+end
+
 
 
 # each iteration of sampling a new point
@@ -38,6 +53,11 @@ for sample_iter in 1:(n-initial_n)
     # Record the nth sampled point
     curr_sampled_n = length(x)
     print(curr_sampled_n)
+
+    # Calculate MSE with current number of sampled points and add it to list
+    current_mse = calculateMSE(x)
+    push!(mses, current_mse)
+    print("     MSE PolynomialChaos: $current_mse")
 
     # Make copies of current sampled points
     tempx = copy(x)
@@ -49,11 +69,11 @@ for sample_iter in 1:(n-initial_n)
         poly_surrogate = PolynomialChaosSurrogate(tempx, tempy, lb, ub) # Get PolynomialChaosSurrogate of current sampled points
     
         # for each sampled point, we find the leave-one-out surrogate function
-        for sampled_point in tempx
+        for index in collect(1:length(tempx))
             loo_x = copy(tempx)
             loo_y = copy(tempy)
-            deleteat!(loo_x, findall(x->x==sampled_point,loo_x))
-            deleteat!(loo_y, findall(x->x==f(sampled_point),loo_y))
+            deleteat!(loo_x, index)
+            deleteat!(loo_y, index)
             loo_poly_surrogate = PolynomialChaosSurrogate(loo_x, loo_y, lb, ub) # find the surrogate function that leaves one sampled point out
             norm = norm + (loo_poly_surrogate(new_sample_point_x) - poly_surrogate(new_sample_point_x))^2   # Add up the norm to calculate cv error
         end
@@ -71,7 +91,7 @@ for sample_iter in 1:(n-initial_n)
 
     new_sample_point = (0.05,100,63070,990,63.1,700,1120,9855)
     max_opt = 0 # number to maximize (cv_error * minimum_distance)
-    for target_sample_x in sample(n,lb,ub,UniformSample())
+    for target_sample_x in sample(n,lb,ub,SobolSample())
         if target_sample_x in tempx
             continue    # skip the points already sampled
         else
@@ -93,6 +113,7 @@ end
 y = f.(x)   # Get true values of sampled points
 
 
+
 # Evalate the sampling results
 # Find the MSE of 1000 tested points evaluated on RadialBasis and PolynomialChaos Surrogates created using our cv sampling points
 n_test = 1000
@@ -108,11 +129,20 @@ mse_poli = norm(y_true - y_poli,2)/n_test
 print("MSE RadialBasis: $mse_rad    ")
 print("MSE PolynomialChaos: $mse_poli    ")
 
+push!(mses, mse_poli)   # Push the final mse with all the sampled points to the mse list
+
 # Find the MSE of 1000 tested points evaluated on PolynomialChaos Surrogate created by some random sampling methods
 random_n = n    # Generate same total number of sampling points
-random_x = sample(random_n,lb,ub,GoldenSample());
+random_x = sample(random_n,lb,ub,SobolSample());    # with same random sampling sequence as the initial samples
 random_y_true = f.(random_x)
 other_poli = PolynomialChaosSurrogate(random_x,random_y_true,lb,ub)
 other_y_poli = other_poli.(x_test)
 mse_other_poli = norm(y_true - other_y_poli, 2)/random_n
 print("MSE PolynomialChaos on random samples: $mse_other_poli")
+
+
+# Make a plot of how MSE changes during sampling
+plot(sample_iters, mses, title="PolynomialChaos MSE vs number of total sampling points", label="mse_poli")
+xlabel!("number of total sampling points")
+ylabel!("PolynomialChaos MSE")
+savefig("ndsampling_waterflow_MSE.png")

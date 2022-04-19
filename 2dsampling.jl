@@ -84,7 +84,7 @@ anim = @animate for sample_iter in 1:(n-initial_n-4)
 
     new_sample_point = (0.0, 0.0)
     max_opt = 0     # number to maximize (cv_error * minimum_distance)
-    for target_sample_xys in sample(n,lb,ub,UniformSample())
+    for target_sample_xys in sample(n,lb,ub,SobolSample())
         if target_sample_xys in tempxys
             continue       # skip the points already sampled
         else

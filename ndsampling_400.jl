@@ -23,7 +23,7 @@ function f(x)
 end
 
 
-n = 180     # number of total sampling points
+n = 400     # number of total sampling points
 initial_n = 138     # number of initial sampling points
 d = 8   # dimension
 lb = [0.05,100,63070,990,63.1,700,1120,9855]
