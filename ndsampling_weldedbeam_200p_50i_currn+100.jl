@@ -130,4 +130,4 @@ plot(sample_iters, cv_mses, title="Lobachevsky MSE vs number of total sampling p
 plot!(sample_iters, other_mses, label="sobol mse_loba")
 xlabel!("number of total sampling points")
 ylabel!("Lobachevsky MSE")
-savefig("ndsampling_weldedbeam_MSE_300p_50i.pdf")
+savefig("ndsampling_weldedbeam_MSE_200p_50i.pdf")
