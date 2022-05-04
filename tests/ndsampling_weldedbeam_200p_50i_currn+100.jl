@@ -19,8 +19,8 @@ function f(x)
 end
 
 
-n = 350     # number of total sampling points
-initial_n = 300     # number of initial sampling points
+n = 200     # number of total sampling points
+initial_n = 50     # number of initial sampling points
 node_n = 200        # number of target points to evaluate in one sampling iteration
 # iter_n = 10         # number of sampling points in each iteration
 d = 3   # dimension
@@ -99,7 +99,7 @@ for sample_iter in 1:(n-initial_n)
     end
 
     clean_datatypef = x -> [i for i in x]       # Defines a function that put a point in list datatype that can be input to other functions
-    target_sample_xs = sample(n,lb,ub,UniformSample())
+    target_sample_xs = sample(curr_sampled_n+100,lb,ub,SobolSample())
     cleaned_target_sample_xs = broadcast(clean_datatypef, target_sample_xs)
     opt = cv_error.(cleaned_target_sample_xs) .* min_distance.(cleaned_target_sample_xs)
     # opt = min_distance.(cleaned_target_sample_xs)
@@ -130,4 +130,4 @@ plot(sample_iters, cv_mses, title="Lobachevsky MSE vs number of total sampling p
 plot!(sample_iters, other_mses, label="sobol mse_loba")
 xlabel!("number of total sampling points")
 ylabel!("Lobachevsky MSE")
-savefig("ndsampling_weldedbeam_MSE_350p_300i.pdf")
+savefig("results/ndsampling_weldedbeam_MSE_200p_50i.pdf")

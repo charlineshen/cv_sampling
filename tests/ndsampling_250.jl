@@ -1,3 +1,4 @@
+# This file has not implemented speedup
 # Run:
 # import Pkg; Pkg.add("Surrogates")
 # import Pkg; Pkg.add("PolyChaos")
@@ -23,7 +24,7 @@ function f(x)
 end
 
 
-n = 350     # number of total sampling points
+n = 250     # number of total sampling points
 initial_n = 138     # number of initial sampling points
 node_n = 200        # number of target points to evaluate in one sampling iteration
 d = 8   # dimension
@@ -155,4 +156,4 @@ plot(sample_iters, cv_mses, title="PolynomialChaos MSE vs number of total sampli
 plot!(sample_iters, other_mses, label="sobol mse_poli")
 xlabel!("number of total sampling points")
 ylabel!("PolynomialChaos MSE")
-savefig("ndsampling_waterflow_MSE_350n.png")
+savefig("results/ndsampling_waterflow_MSE_250n.png")

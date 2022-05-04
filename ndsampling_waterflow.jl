@@ -23,13 +23,18 @@ function f(x)
 end
 
 
-n = 500     # number of total sampling points
-initial_n = 138     # number of initial sampling points
+n = 142     # number of total sampling points
+initial_n = 140     # number of initial sampling points
 node_n = 200        # number of target points to evaluate in one sampling iteration
+#iter_n = 10         # number of sampling points in each iteration
+                    #NOTE: Could implement sample more points in one iteration
 d = 8   # dimension
 lb = [0.05,100,63070,990,63.1,700,1120,9855]
 ub = [0.15,50000,115600,1110,116,820,1680,12045]
-x = sample(initial_n,lb,ub,SobolSample())   # sample the initial points using sobolsample
+x = sample(initial_n-2,lb,ub,SobolSample())   # sample the initial points using sobolsample
+
+push!(x, (0.05,100,63070,990,63.1,700,1120,9855))
+push!(x, (0.15,50000,115600,1110,116,820,1680,12045))
 y = f.(x)
 
 sample_iters = initial_n:n
@@ -101,25 +106,16 @@ for sample_iter in 1:(n-initial_n)
     function min_distance(new_sample_point_x)
         arr_x = [collect(i) for i in tempx]
         sample_point_x_arr = fill(new_sample_point_x, length(tempx))
-        distance_arr = broadcast(-, sample_point_x_arr, arr_x)
-        distance_arr = broadcast(norm, distance_arr)
+        distance_arr = sample_point_x_arr - arr_x
+        distance_arr = norm.(distance_arr)
         d = minimum(distance_arr)
     end
 
-    new_sample_point = (0.05,100,63070,990,63.1,700,1120,9855)
-    max_opt = 0 # number to maximize (cv_error * minimum_distance)
-    for target_sample_x in sample(curr_sampled_n,lb,ub,SobolSample())
-        if target_sample_x in tempx
-            continue    # skip the points already sampled
-        else
-            arr_target_sample_x = [i for i in target_sample_x]
-            opt = cv_error(arr_target_sample_x) * min_distance(arr_target_sample_x) # Calculate the output of optimization function for the point
-            if opt > max_opt
-                max_opt = opt
-                new_sample_point = target_sample_x  # Update the new sampling point as the point with biggest max_opt
-            end
-        end
-    end
+    clean_datatypef = x -> [i for i in x]       # Define a function that put a point in list datatype that can be input to other functions
+    target_sample_xs = sample(node_n,lb,ub,SobolSample())   # Define node_n number of target sample points      #NOTE: Sobol Sample may collect same points as initial points
+    cleaned_target_sample_xs = broadcast(clean_datatypef, target_sample_xs)
+    opt = cv_error.(cleaned_target_sample_xs) .* min_distance.(cleaned_target_sample_xs)
+    new_sample_point = target_sample_xs[argmax(opt)]
 
     print(new_sample_point)
     print("\n")
@@ -155,4 +151,4 @@ plot(sample_iters, cv_mses, title="PolynomialChaos MSE vs number of total sampli
 plot!(sample_iters, other_mses, label="sobol mse_poli")
 xlabel!("number of total sampling points")
 ylabel!("PolynomialChaos MSE")
-savefig("ndsampling_waterflow_MSE_500n.png")
+savefig("results/ndsampling_waterflow_MSE_$n p_$initial_n i_$node_n n.png")

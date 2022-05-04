@@ -84,7 +84,7 @@ anim = @animate for sample_iter in 1:n_samples-length(x)
 end
 
 # Create an animation of the sampling process
-gif(anim, "1d cv sampling.gif", fps = 2)
+gif(anim, "results/1d cv sampling.gif", fps = 2)
 
 
 # y = salustowicz.(x)

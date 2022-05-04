@@ -116,7 +116,7 @@ anim = @animate for sample_iter in 1:(n-initial_n-4)
 end
 
 # Create an animation of the sampling process
-gif(anim, "2d cv sampling.gif", fps = 2)
+gif(anim, "results/2d cv sampling.gif", fps = 2)
 
 
 zs = Rosenbrock2d.(xys);    # find the true values of all sampling points

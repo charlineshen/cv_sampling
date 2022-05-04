@@ -19,8 +19,8 @@ function f(x)
 end
 
 
-n = 200     # number of total sampling points
-initial_n = 50     # number of initial sampling points
+n = 100     # number of total sampling points
+initial_n = 10     # number of initial sampling points
 node_n = 200        # number of target points to evaluate in one sampling iteration
 # iter_n = 10         # number of sampling points in each iteration
 d = 3   # dimension
@@ -130,4 +130,4 @@ plot(sample_iters, cv_mses, title="Lobachevsky MSE vs number of total sampling p
 plot!(sample_iters, other_mses, label="sobol mse_loba")
 xlabel!("number of total sampling points")
 ylabel!("Lobachevsky MSE")
-savefig("ndsampling_weldedbeam_MSE_200p_50i.pdf")
+savefig("results/ndsampling_weldedbeam_MSE_100p_10i.pdf")
