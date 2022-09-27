@@ -92,10 +92,10 @@ for sample_iter in 1:(n-initial_n)
 
     # Function that returns the minimum distance between the input point and one of the already sampled points
     function min_distance(new_sample_point_x)
-        arr_x = [collect(i) for i in tempx]
-        sample_point_x_arr = fill(new_sample_point_x, length(tempx))
-        distance_arr = sample_point_x_arr - arr_x
-        distance_arr = norm.(distance_arr)
+        # tempx is a vector of current sampled points, with each point as a tuple
+        sampled_points_arr = [collect(x) for x in tempx]     # turn the terms in tempx into arrays
+        new_point_arr = fill(new_sample_point_x, length(tempx))
+        distance_arr = norm.(new_point_arr - sampled_points_arr)
         d = minimum(distance_arr)
     end
 
