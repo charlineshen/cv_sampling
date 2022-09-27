@@ -114,7 +114,7 @@ end
 
 
 initial_n = 17    # Number of initial sampling points
-total_n = 23     # Number of total points we want to sample (initial_n + n)
+total_n = 100     # Number of total points we want to sample (initial_n + n)
 eval_n = 350    # Number of potential points to evaluate in each iteration
 lb = [0.0,0.0]
 ub = [8.0,8.0]
