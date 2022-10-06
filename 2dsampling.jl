@@ -96,19 +96,21 @@ end
 initial_n = 17    # Number of initial sampling points
 total_n = 25     # Number of total points we want to sample (initial_n + n)
 eval_n = 100    # Number of potential points to evaluate in each iteration
+d = 2   # dimension of the problem
 lb = [0.0,0.0]
 ub = [8.0,8.0]
 
 # Sample initial points
 xs = QuasiMonteCarlo.sample(initial_n, lb, ub, QuasiMonteCarlo.LatinHypercubeSample())'
-# Sample points on the edges
-xs = [xs;[0.0 0.0]]
-xs = [xs;[0.0 8.0]]
-xs = [xs;[8.0 0.0]]
-xs = [xs;[8.0 8.0]]
-initial_n = initial_n + 4
 # Sample some target points to evaluate the optimization function on in each iteration
 target_sample_xs = Surrogates.sample(eval_n,lb,ub,Surrogates.SobolSample())
+
+# Sample points on the edges
+reorder_lb_ub = collect(eachrow([lb ub]))
+cornor_points = reshape(collect(Iterators.product(reorder_lb_ub...)), 2^d, 1)
+xs = vcat(xs, reduce(hcat, [collect(x) for x in cornor_points])')
+initial_n = initial_n + 4
+
 
 # Plot the surrogate plot with initial sampled points
 vec_xs = collect(eachrow(xs))
